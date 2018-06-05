@@ -1,5 +1,5 @@
+#_____________________Importación de bibliotecas________________
 
-#_________________Importación de bibliotecas________________
 import pygame, sys, os, random, time
 from pygame.locals import *
 import tkinter
@@ -9,18 +9,27 @@ from threading import Thread
 import winsound
 from tkinter import messagebox
 
-Piloto = False
+#_______________________Variable Globales_____________________
+
 global j, Cambio
+
 j = 0
 Cambio = True
+Piloto = False
 
-#______________________________________________________
-#_______________________Cargar Imagenes__________________
+#_______________________Cargar Imagenes______________________
+
 
 def Imagenes(name):
         ruta=os.path.join('Images',name)
         imagen=PhotoImage(file=ruta) 
         return imagen
+
+#___________________________________________________________
+
+
+Lista_N = ["Brad Owen", "Dina Brown", "Jackson Harrys", "Stephen Smith", "Frank Jones", "Kate Mason", "Vanessa Kyle", "Stella Murphy", "Evans O'Ryan", "Davis Miller", "Jaidan Lam", "Olivia Wilson", "Thomas Connor", "Charlotte Lee", "Arren Kae", "Akiha Tohno", "George Star", "Ash Fate"]
+Lista_P = ["#1.gif","#2.gif","#3.gif","#4.gif","#5.gif","#6.gif","#7.gif","#8.gif","#9.gif","#10.gif","#11.gif","#12.gif","#13.gif","#14.gif","#15.gif","#16.gif","#17.gif","#18.gif"]
 
 
 #___________________Pantalla Principal______________________
@@ -121,13 +130,68 @@ def Puntuaciones():
         Fondo_Pantalla_Puntuaciones = Label(Fondo_Pantalla_Puntuaciones, image = Img_Fondo_Punt,  width= 700, height= 700)
         Fondo_Pantalla_Puntuaciones.place(x=0, y=0)
 
+        
+        Lista_pilotos_dos = Lista_N[:]
+        
+        def punt_aleatorias():
+                global x, y
+                x = 0
+                y = 0
+                def valores_random(lista_valores_random):
+                        lista_valores_random = []
+                        Lista_N = ["Brad Owen", "Dina Brown", "Jackson Harrys", "Stephen Smith", "Frank Jones", "Kate Mason", "Vanessa Kyle", "Stella Murphy", "Evans O'Ryan", "Davis Miller", "Jaidan Lam", "Olivia Wilson", "Thomas Connor", "Charlotte Lee", "Arren Kae", "Akiha Tohno", "George Star", "Ash Fate"]
+                        for i in Lista_N:
+                                rand_scores = int(random.uniform(10, 80))
+                                lista_valores_random.append(rand_scores)
+                        return ordenar_burbuja(lista_valores_random)
+
+                 
+                def ordenar_burbuja(lista_valores_random):
+                        return ordenar_burbuja_aux(lista_valores_random, 0, 0, False)
+                
+                def ordenar_burbuja_aux(lista_valores_random, y, x, cambio):
+                            if y == len(lista_valores_random) -x - 1:
+                                        if cambio:
+                                            return ordenar_burbuja_aux(lista_valores_random,0, x+1, False)
+                                        else:
+                                                os.remove("Puntuaciones_pilotos.txt")
+                                                archivo = open("Puntuaciones_pilotos.txt", "a+")
+                                                return asignar_valor_piloto(lista_valores_random, Lista_pilotos_dos, 0, archivo)     
+                            if lista_valores_random[y] > lista_valores_random[y+1]:
+                                        Tem = lista_valores_random[y]
+                                        lista_valores_random[y] = lista_valores_random[y+1]
+                                        lista_valores_random[y+1] = Tem
+                                        return ordenar_burbuja_aux(lista_valores_random,y+1, i, True)
+                            else:
+                                        return ordenar_burbuja_aux(lista_valores_random, y+1, i, cambio)
+                
+
+                def asignar_valor_piloto(lista_valores_random, Lista_pilotos_dos, p, archivo):
+                        if p == len(lista_valores_random):
+                                archivo.seek(0)
+                                contenido = archivo.read()
+                                Lista_pilotos_dos = Lista_N
+                                tabla = Label(Fondo_Pantalla_Puntuaciones, text = contenido, font=("Times", 20), bg ="light grey", width=23, fg = "black", justify = LEFT, anchor=W)
+                                tabla.place(x=170, y=50)
+                        else:
+                                piloto_random = random.choice(Lista_pilotos_dos)
+                                archivo.write(" " + str(piloto_random) + "-----------> "+ str(int(lista_valores_random[p]))+ '\n')
+                                Lista_pilotos_dos.remove(piloto_random)
+                                return asignar_valor_piloto(lista_valores_random, Lista_pilotos_dos, p+1, archivo)
+                        
+
+                valores_random([])
+
+        punt_aleatorias()
+        
         def Volver3():
-                Pantalla_Puntuaciones.withdraw()
+                Pantalla_Puntuaciones.destroy()
                 Pantalla_Principal.deiconify()
      
         Back_Imagen3 = Imagenes("Volver_Boton.gif")
         Back_Principal3 = Button(Pantalla_Puntuaciones, image = Back_Imagen3, command = Volver3)
         Back_Principal3.place(x = 620, y = 650)
+
         
 
         Pantalla_Puntuaciones.mainloop()
@@ -153,7 +217,8 @@ def P_Personajes():
         Pantalla_Personajes.title("Selección de Personajes")
         Pantalla_Personajes.resizable(width=NO,height=NO)
         Pantalla_Personajes.minsize(1300, 700)
-
+        
+        
         Fondo_Pantalla_Personajes = Canvas(Pantalla_Personajes, width= 1300, height= 700)
         Fondo_Pantalla_Personajes.place(x= 0, y = 0)
         
@@ -182,7 +247,6 @@ def P_Personajes():
 
         
         Lista_P = ["#1.gif","#2.gif","#3.gif","#4.gif","#5.gif","#6.gif","#7.gif","#8.gif","#9.gif","#10.gif","#11.gif","#12.gif","#13.gif","#14.gif","#15.gif","#16.gif","#17.gif","#18.gif"]
-        Lista_N = ["Brad Owen", "Dina Brown", "Jackson Harrys", "Stephen Smith", "Frank Jones", "Kate Mason", "Vanessa Kyle", "Stella Murphy", "Evans O'Ryan", "Davis Miller", "Jaidan Lam", "Olivia Wilson", "Thomas Connor", "Charlotte Lee", "Arren Kae", "Akiha Tohno", "George Star", "Ash Fate"]
         cont =0
         list_botones = []
         lista_imagen = []
@@ -215,6 +279,7 @@ def P_Personajes():
 
                 list_botones.append(Nombres_Bot)
 
+        Pantalla_Personajes.update()
                 
         Pantalla_Personajes.mainloop()
 
@@ -222,9 +287,6 @@ Pers_Ima_Boton = Imagenes("Personajes.gif")
 
 Personajes = Button(Pantalla_Principal, command = P_Personajes, image = Pers_Ima_Boton)
 Personajes.place(x=70, y = 10)
-
-Lista_N = ["Brad Owen", "Dina Brown", "Jackson Harrys", "Stephen Smith", "Frank Jones", "Kate Mason", "Vanessa Kyle", "Stella Murphy", "Evans O'Ryan", "Davis Miller", "Jaidan Lam", "Olivia Wilson", "Thomas Connor", "Charlotte Lee", "Arren Kae", "Akiha Tohno", "George Star", "Ash Fate"]
-Lista_P = ["#1.gif","#2.gif","#3.gif","#4.gif","#5.gif","#6.gif","#7.gif","#8.gif","#9.gif","#10.gif","#11.gif","#12.gif","#13.gif","#14.gif","#15.gif","#16.gif","#17.gif","#18.gif"]
 
 
 def Onclick(opcion):
@@ -319,12 +381,29 @@ def settings():
                         Entry_Nuevo_N = Entry(Nuev_Nombre, textvariable =N_Nombre, width = 30)
                         Entry_Nuevo_N.place(x=10, y=40)
 
+
+                        def cambiar_nombre():
+                                global nombre_cambiado
+                                Nombre_introducido = Entry_Nuevo_N.get()
+                                Lista_N[j] = str(Nombre_introducido)
+                                print (Lista_N)
+                                
+                                N_Personaje= Label(Fondo_Pantalla_Settings, text = Lista_N[j], anchor=CENTER, font=("Times", 12), bg ="Black", width=11, fg = "white")
+                                N_Personaje.place(x=500, y = 315)
+
+                                Pantalla_Settings.update()
+                                Nuev_Nombre.destroy()
+
+                        def cancelar():
+                                Nuev_Nombre.destroy()
+                                
+
                         check = PhotoImage(file = "check.gif")
-                        Boton_Check = Button(Nuev_Nombre, image = check)
+                        Boton_Check = Button(Nuev_Nombre, image = check, command = cambiar_nombre)
                         Boton_Check.place(x=50, y=65)
 
                         x = PhotoImage(file = "x.gif")
-                        Boton_X = Button(Nuev_Nombre, image = x)
+                        Boton_X = Button(Nuev_Nombre, image = x, command = cancelar)
                         Boton_X.place(x=125, y=65)
 
                         Nuev_Nombre.mainloop()
@@ -340,6 +419,7 @@ def settings():
         Cambiar_Nombre.place(x=100, y = 225)
 
         def Volver4():
+                print (Lista_N)
                 Pantalla_Settings.withdraw()
                 Pantalla_Principal.deiconify()
      
@@ -427,17 +507,6 @@ Icono_P.place(x=860, y = 12)
 
 
 apagar()
-
-
-
-
-
-
-
-
-
-
-
 
 
 
