@@ -9,10 +9,11 @@ from threading import Thread
 import winsound
 from tkinter import messagebox
 
-#_______________________Variable Globales_____________________
+#_______________________Variables Globales_____________________
 
 global j, Cambio
 
+i = 0
 j = 0
 Cambio = True
 Piloto = False
@@ -25,14 +26,14 @@ def Imagenes(name):
         imagen=PhotoImage(file=ruta) 
         return imagen
 
-#___________________________________________________________
+#______Listas Con Los Nombres y las Imagenes de Los Pilotos___________
 
 
 Lista_N = ["Brad Owen", "Dina Brown", "Jackson Harrys", "Stephen Smith", "Frank Jones", "Kate Mason", "Vanessa Kyle", "Stella Murphy", "Evans O'Ryan", "Davis Miller", "Jaidan Lam", "Olivia Wilson", "Thomas Connor", "Charlotte Lee", "Arren Kae", "Akiha Tohno", "George Star", "Ash Fate"]
 Lista_P = ["#1.gif","#2.gif","#3.gif","#4.gif","#5.gif","#6.gif","#7.gif","#8.gif","#9.gif","#10.gif","#11.gif","#12.gif","#13.gif","#14.gif","#15.gif","#16.gif","#17.gif","#18.gif"]
 
 
-#___________________Pantalla Principal______________________
+#______________________Pantalla Principal_________________________
 
 Pantalla_Principal = Tk()
 Pantalla_Principal.title("Star Force 2018")
@@ -46,7 +47,7 @@ Img_Fondo= Imagenes("FondoInicio.gif")
 Fondo_Pantalla_P.create_image(500, 350, image = Img_Fondo)
 
 
-#_________________Pantalla About___________________________
+#_______________________Pantalla About___________________________
 
 
 Pantalla_About = Toplevel()
@@ -63,57 +64,24 @@ Fondo_Pantalla_A = Label(Fondo_Pantalla_A, image = Img_Fondo_A,  width= 700, hei
 Fondo_Pantalla_A.place(x=0, y=0)
 
 
+#_________________________Musica________________________________
 
-#_________________________________Musica_______________________________
+#Funciones para iniciar y detener la música de fondo
 
 def musica_fondo():
-    winsound.PlaySound("Musica_Fondo.wav", winsound.SND_ASYNC)
-
-
+          winsound.PlaySound("Musica_Fondo.wav", winsound.SND_ASYNC)
+          
 a = Thread(target = musica_fondo, args=())
 a.start()
 
 
+
 def apagar():                           
     winsound.PlaySound(None, winsound.SND_ASYNC)
+    
 
 
-#_________________________________Botones_______________________________
-
-
-def Abrir_About():
-        Pantalla_About.deiconify()
-        Pantalla_Principal.withdraw()
-Boton_Imagen_About = Imagenes("About.gif")
-Boton_About = Button(Pantalla_Principal, image = Boton_Imagen_About, command= Abrir_About)
-Boton_About.place(x=10, y = 10)
-
-#_____
-
-def Volver():
-        Pantalla_About.withdraw()
-        Pantalla_Principal.deiconify()
-Back_Imagen = Imagenes("Volver_Boton.gif")
-Back_Principal = Button(Pantalla_About, image = Back_Imagen, command = Volver)
-Back_Principal.place(x=620, y = 650)
-
-
-#______
-
-def Salir():
-        apagar()
-        Pantalla_Principal.destroy()
-        sys.exit()
-        
-        
-Salir_Imagen = Imagenes("Salir_Boton.gif")
-Salir_Principal = Button(Pantalla_Principal, image = Salir_Imagen, command = Salir)
-Salir_Principal.place(x=950, y = 10)
-
-#_______
-
-
-#_________________________________________Puntuaciones________________________________
+#________________________Pantalla Puntuaciones_________________________
 
 
 def Puntuaciones():
@@ -131,8 +99,13 @@ def Puntuaciones():
         Fondo_Pantalla_Puntuaciones.place(x=0, y=0)
 
         
-        Lista_pilotos_dos = Lista_N[:]
         
+        
+        #_______________________________ Puntos Aleatorios de los Pilotos__________________________________
+
+        Lista_pilotos_dos = Lista_N[:]
+
+        #Se inicia seleccionando puntajes aleatorios con el uso del random, y almacenando estos en una lista
         def punt_aleatorias():
                 global x, y
                 x = 0
@@ -145,10 +118,12 @@ def Puntuaciones():
                                 lista_valores_random.append(rand_scores)
                         return ordenar_burbuja(lista_valores_random)
 
-                 
+
+                 #Una vez guardados en la lista los puntos aleatorios se llama a la función encargada de ordenar la lista
                 def ordenar_burbuja(lista_valores_random):
                         return ordenar_burbuja_aux(lista_valores_random, 0, 0, False)
                 
+                #Se utiliza el algoritmo de ordenamiento burbuja que se encarga de ordenar la lista de forma ascendente
                 def ordenar_burbuja_aux(lista_valores_random, y, x, cambio):
                             if y == len(lista_valores_random) -x - 1:
                                         if cambio:
@@ -156,8 +131,8 @@ def Puntuaciones():
                                         else:
                                                 os.remove("Puntuaciones_pilotos.txt")
                                                 archivo = open("Puntuaciones_pilotos.txt", "a+")
-                                                return asignar_valor_piloto(lista_valores_random, Lista_pilotos_dos, 0, archivo)     
-                            if lista_valores_random[y] > lista_valores_random[y+1]:
+                                                return asignar_valor_piloto(lista_valores_random[::-1], Lista_pilotos_dos, 0, archivo)    #Como la lista se ordena de menor a mayor, se le da vuelta a la misma ya que
+                            if lista_valores_random[y] > lista_valores_random[y+1]:                                                                          #La tabla inicia con las puntuaciones más altas primero
                                         Tem = lista_valores_random[y]
                                         lista_valores_random[y] = lista_valores_random[y+1]
                                         lista_valores_random[y+1] = Tem
@@ -166,6 +141,11 @@ def Puntuaciones():
                                         return ordenar_burbuja_aux(lista_valores_random, y+1, i, cambio)
                 
 
+                #Una vez ordenada la lista de puntuaciones se le debe asignar cada puntuacion a un piloto al azar también, para estos se utiliza también la biblioteca random
+                #La cual selecciona cada uno de los personajes y despues los elimina de la lista para que no sea elegidos dos veces.
+                #Cada piloto con se respectiva puntuacion son escritos en un documento de texto el cual será leido posteriormente para crear la table de puntuaciones
+                #Y a su vez se crea la etiqueta en la pantalla con la informacion excrita el documento de texto antes mencionado
+                                
                 def asignar_valor_piloto(lista_valores_random, Lista_pilotos_dos, p, archivo):
                         if p == len(lista_valores_random):
                                 archivo.seek(0)
@@ -178,11 +158,15 @@ def Puntuaciones():
                                 archivo.write(" " + str(piloto_random) + "-----------> "+ str(int(lista_valores_random[p]))+ '\n')
                                 Lista_pilotos_dos.remove(piloto_random)
                                 return asignar_valor_piloto(lista_valores_random, Lista_pilotos_dos, p+1, archivo)
-                        
 
+                        
+                #Se llama a la funcion para iniciar el proceso
                 valores_random([])
 
         punt_aleatorias()
+
+        #_____________________________________________Botón Para Volver a la Pantalla Principal_______________________________________
+
         
         def Volver3():
                 Pantalla_Puntuaciones.destroy()
@@ -191,18 +175,12 @@ def Puntuaciones():
         Back_Imagen3 = Imagenes("Volver_Boton.gif")
         Back_Principal3 = Button(Pantalla_Puntuaciones, image = Back_Imagen3, command = Volver3)
         Back_Principal3.place(x = 620, y = 650)
-
-        
+  
 
         Pantalla_Puntuaciones.mainloop()
 
-Imag_Boton_Punt = Imagenes("Puntuaciones.gif")
-Boton_Punt = Button(Pantalla_Principal, image = Imag_Boton_Punt, command = Puntuaciones)
-Boton_Punt.place(x=130, y = 10)
 
 #______________________Pantalla Elegir Personaje_______________________
-
-i = 0
 
 
 def P_Personajes():
@@ -228,7 +206,6 @@ def P_Personajes():
 
         def Volver2():
                 global i, j
-                print (j)
                 i = 0
                 Pantalla_Personajes.withdraw()
                 Pantalla_Principal.deiconify()
@@ -245,16 +222,28 @@ def P_Personajes():
         Back_Principal2 = Button(Pantalla_Personajes, image = Back_Imagen2, command = Volver2)
         Back_Principal2.place(x = 1220, y = 650)
 
+
+        #___________________________Bloque de codigo para la creacion de los persojes_____________________
+
         
+        #Se establece la lista con los nombre de las imagenes de cada personaje, un contador, y dos listas vacías
         Lista_P = ["#1.gif","#2.gif","#3.gif","#4.gif","#5.gif","#6.gif","#7.gif","#8.gif","#9.gif","#10.gif","#11.gif","#12.gif","#13.gif","#14.gif","#15.gif","#16.gif","#17.gif","#18.gif"]
         cont =0
         list_botones = []
         lista_imagen = []
+
+
+        #Se encaraga de cargar cada una de la imagenes a una variable y agregar esa variable a una de las lista vacías
         
         for i in Lista_P:
                 carga_imagen = PhotoImage(file=i)
                 lista_imagen.append(carga_imagen)
-       
+
+
+        #Se encarga de crear las etiquetas y los botones, los cuales se acomodas a una cierta cantidad de pixeles uno de otros para que se aprecien acomodados
+        #Las etiquetas contienes los nombres de los respectivos personajes y los botones son las imagenes de los personajes en sí
+        #Se establece una función lambda la cual me permite conocer cual personajes ha sido seleccionado por el usuario
+        #al usuario seleccionar un personaje, esta funcion me retorna el subindice del nombre del personaje de la lista de los pilotos
         for i in lista_imagen:
                 cmd = lambda  x = Lista_N[cont]:  Onclick(x)
                 Nombres = Label(Fondo_Pantalla_Personajes, text= Lista_N[cont], anchor=CENTER, font=("Times", 12), bg ="Black", width=11, fg = "white")
@@ -283,12 +272,8 @@ def P_Personajes():
                 
         Pantalla_Personajes.mainloop()
 
-Pers_Ima_Boton = Imagenes("Personajes.gif")
 
-Personajes = Button(Pantalla_Principal, command = P_Personajes, image = Pers_Ima_Boton)
-Personajes.place(x=70, y = 10)
-
-
+#Función lambda antes mencionada
 def Onclick(opcion):
         global  Piloto, j
         Piloto = True
@@ -303,7 +288,7 @@ def Onclick(opcion):
 
 
 def settings():
-        global j
+        global j                                                #La variable global "j" me indica el personaje escogido por el usuario, este es el subindice de la lista donde estan los nombres de los personajes
         Pantalla_Principal.withdraw()
         Pantalla_Settings = Toplevel()
         Pantalla_Settings.title("Configuraciones")
@@ -361,7 +346,12 @@ def settings():
         Boton_quitar_m = Button(Fondo_Pantalla_Settings, image = silenciar_m_image, command = cambiar_b_s)
         Boton_quitar_m.place(x=100, y=100)
 
-
+        #_______________________________Cambio de Nombre____________________________________
+        
+        #Función Para cambiar de nombre al piloto
+        #Al seleccionar cambio de nombre le saltaria una pantalla pequeña indicando el nombre nuevo del personaje
+        #Al usuario escribir el nuevo nombre, esta información es tomada y la lista donde contiene los nombres de los personajes es editada, cambiando el
+        #nombre anterior por el escrito por el usuario
         def cambio_de_nombre():
                 global Piloto, j
                 if Piloto:
@@ -386,7 +376,6 @@ def settings():
                                 global nombre_cambiado
                                 Nombre_introducido = Entry_Nuevo_N.get()
                                 Lista_N[j] = str(Nombre_introducido)
-                                print (Lista_N)
                                 
                                 N_Personaje= Label(Fondo_Pantalla_Settings, text = Lista_N[j], anchor=CENTER, font=("Times", 12), bg ="Black", width=11, fg = "white")
                                 N_Personaje.place(x=500, y = 315)
@@ -419,28 +408,20 @@ def settings():
         Cambiar_Nombre.place(x=100, y = 225)
 
         def Volver4():
-                print (Lista_N)
                 Pantalla_Settings.withdraw()
                 Pantalla_Principal.deiconify()
      
         Back_Imagen4 = Imagenes("Volver_Boton.gif")
         Back_Principal4 = Button(Pantalla_Settings, image = Back_Imagen4, command = Volver4)
-        Back_Principal4.place(x = 620, y = 650)
-
-        #_______________Cambio de nombre________________________________
-
-       
+        Back_Principal4.place(x = 620, y = 650)      
                         
         Pantalla_Settings.mainloop()
+
         
-Imag_Boton_Sett = Imagenes("Settings.gif")
-Boton_Sett = Button(Pantalla_Principal, image = Imag_Boton_Sett, command = settings)
-Boton_Sett.place(x=10, y = 645)
-        
-#_________________________________________________________________________________________
+#__________________Pantalla de Selección de Modo de Juego___________________
 
 def seleccion_modo_juego():
-        global Piloto
+        global Piloto                           #La variable global Piloto me indica si el usuario ha selecionado personaje o no
         if Piloto:
                 Pantalla_Principal.withdraw()
                 Pantalla_Seleccion = Toplevel()
@@ -490,24 +471,87 @@ def seleccion_modo_juego():
                 messagebox.showinfo("Un paso antes...", "Debes escoger un piloto")
                 
 
+#____________________________Botones_____________________________
+
+#Abrir La Ventana About
+    
+def Abrir_About():
+        Pantalla_About.deiconify()
+        Pantalla_Principal.withdraw()
+Boton_Imagen_About = Imagenes("About.gif")
+Boton_About = Button(Pantalla_Principal, image = Boton_Imagen_About, command= Abrir_About)
+Boton_About.place(x=10, y = 10)
+
+
+#_____
+#Volver a la Pantalla Principal
+
+def Volver():
+        Pantalla_About.withdraw()
+        Pantalla_Principal.deiconify()
+Back_Imagen = Imagenes("Volver_Boton.gif")
+Back_Principal = Button(Pantalla_About, image = Back_Imagen, command = Volver)
+Back_Principal.place(x=620, y = 650)
+
+
+#______
+#Salir del Juego
+
+def Salir():
+        apagar()
+        Pantalla_Principal.destroy()
+        sys.exit()        
+Salir_Imagen = Imagenes("Salir_Boton.gif")
+Salir_Principal = Button(Pantalla_Principal, image = Salir_Imagen, command = Salir)
+Salir_Principal.place(x=950, y = 10)
+
+
+#______
+#Botón Jugar
 
 Imag_Boton_Jugar = Imagenes("button_jugar.gif")
 Boton_Jugar = Button(Pantalla_Principal, image = Imag_Boton_Jugar, command = seleccion_modo_juego)
 Boton_Jugar.place(x=885, y = 630)
 
 
+#______
+#Boton del personaje seleccionado
+
 Image_Nombre_Personaje = Imagenes("Personaje_Seleccionado.gif")
 Nombre_Personaje = Label(Pantalla_Principal, image = Image_Nombre_Personaje)
 Nombre_Personaje.place(x=675, y=12)
 
+
+#______
+#Botón cuando no se ha seleccionado personaje
 
 Icono_No_P = Imagenes("Sin_Personaje.gif")
 Icono_P = Button(Pantalla_Principal, image =Icono_No_P, width = 80, height=75)
 Icono_P.place(x=860, y = 12)
 
 
-apagar()
+#______
+#Botón Pantalla Configuraciones
 
+Imag_Boton_Sett = Imagenes("Settings.gif")
+Boton_Sett = Button(Pantalla_Principal, image = Imag_Boton_Sett, command = settings)
+Boton_Sett.place(x=10, y = 645)
+
+
+#________
+#Boton para ir a la Pantalla Puntuaciones
+
+Imag_Boton_Punt = Imagenes("Puntuaciones.gif")
+Boton_Punt = Button(Pantalla_Principal, image = Imag_Boton_Punt, command = Puntuaciones)
+Boton_Punt.place(x=130, y = 10)
+
+
+#________
+#Botón para ir a la Pantalla de selección de personaje
+
+Pers_Ima_Boton = Imagenes("Personajes.gif")
+Personajes = Button(Pantalla_Principal, command = P_Personajes, image = Pers_Ima_Boton)
+Personajes.place(x=70, y = 10)
 
 
 Pantalla_Principal.mainloop()
