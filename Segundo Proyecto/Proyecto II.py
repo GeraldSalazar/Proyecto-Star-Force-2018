@@ -12,7 +12,22 @@ from tkinter import messagebox
 #_______________________Variables Globales_____________________
 
 global j, Cambio
-
+global modo
+global restantes
+global energía
+global disparo
+global textofinal
+global terminado
+global pts
+global Lista_BestScores
+Lista_BestScores =[]
+modo = 0
+restantes = 9
+pts = 0
+energía = 1000
+disparo = False
+textofinal = ''
+terminado = False
 i = 0
 j = 0
 Cambio = True
@@ -25,6 +40,50 @@ def Imagenes(name):
         ruta=os.path.join('Images',name)
         imagen=PhotoImage(file=ruta) 
         return imagen
+
+def ord_burbuja(Lista):
+        return ord_burbuja_aux(Lista,0,0,False)
+
+def ord_burbuja_aux(Lista,x,y,cambiar):
+        if x == len(Lista)-y-1:
+                if cambiar:
+                        return ord_burbuja_aux(Lista,0,y+1,False)
+                else:
+                        return Lista
+        if Lista[x] > Lista[x+1]:
+                Tem = Lista[x]
+                Lista[x] = Lista[x+1]
+                Lista[x+1] = Tem
+                return ord_burbuja_aux(Lista,x+1,0,True)
+        else:
+                return ord_burbuja_aux(Lista,x+1,0,cambiar)
+
+def check_puntajes(B):
+        global Lista_BestScores
+        archivo = open("Puntajes Usuarios.txt",'r')
+        if B == 120:
+                archivo.close()
+        else:
+                archivo.seek(B)
+                if archivo.readline()[:3] != '   ':
+                        archivo.seek(B)
+                        if archivo.readline()[1:3] != '  ':
+                                archivo.seek(B)
+                                if archivo.readline()[2:3] != ' ':
+                                        archivo.seek(B)
+                                        pts = int(archivo.readline()[:3])
+                                else:
+                                        archivo.seek(B)
+                                        pts = int(archivo.readline()[:2])
+                        else:
+                                archivo.seek(B)
+                                pts = int(archivo.readline()[0])
+                        Lista_BestScores.append(pts)
+                        Lista_BestScores = ord_burbuja(Lista_BestScores)
+                archivo.close()
+                return check_puntajes(B+25)
+
+check_puntajes(20)
 
 #______Listas Con Los Nombres y las Imagenes de Los Pilotos___________
 
@@ -83,101 +142,37 @@ def apagar():
 
 #________________________Pantalla Puntuaciones_________________________
 
-
 def Puntuaciones():
+        global Lista_BestScores
+        
         Pantalla_Principal.withdraw()
-        Pantalla_Puntuaciones = Toplevel()
-        Pantalla_Puntuaciones.title("Mejores Puntuaciones")
-        Pantalla_Puntuaciones.resizable(width=NO,height=NO)
-        Pantalla_Puntuaciones.minsize(700, 700)
+        Pantalla_MejoresPts = Toplevel()
+        Pantalla_MejoresPts.title("Mejores Puntajes")
+        Pantalla_MejoresPts.minsize(700,700)
+        Pantalla_MejoresPts.resizable(width=NO,height=NO)
 
-        Fondo_Pantalla_Puntuaciones = Canvas(Pantalla_Puntuaciones, width= 700, height= 700)
-        Fondo_Pantalla_Puntuaciones.place(x= 0, y = 0)
+        Fondo_PantallaMejoresPts = Canvas(Pantalla_MejoresPts, width=700, height=700)
+        Fondo_PantallaMejoresPts.place(x=0, y=0)
+
+        Img_Fondo_MejoresPts = Imagenes("Fondo_Punt.gif")
+        L_Fondo_PantallaMejoresPts = Label(Fondo_PantallaMejoresPts, image=Img_Fondo_MejoresPts, width= 700, height= 700)
+        L_Fondo_PantallaMejoresPts.place(x=0, y=0)
+
+        archivo = open("Puntajes Usuarios.txt",'r')
+        texto = archivo.read()
+
+        tabla = Label(Fondo_PantallaMejoresPts, text = texto, font=("Times", 20), bg ="light grey", width=23, fg = "black", justify = LEFT, anchor=W)
+        tabla.place(x=170, y=50)
         
-        Img_Fondo_Punt= Imagenes("Fondo_Punt.gif")
-        Fondo_Pantalla_Puntuaciones = Label(Fondo_Pantalla_Puntuaciones, image = Img_Fondo_Punt,  width= 700, height= 700)
-        Fondo_Pantalla_Puntuaciones.place(x=0, y=0)
-
-        
-        
-        
-        #_______________________________ Puntos Aleatorios de los Pilotos__________________________________
-
-        Lista_pilotos_dos = Lista_N[:]
-
-        #Se inicia seleccionando puntajes aleatorios con el uso del random, y almacenando estos en una lista
-        def punt_aleatorias():
-                global x, y
-                x = 0
-                y = 0
-                def valores_random(lista_valores_random):
-                        lista_valores_random = []
-                        Lista_N = ["Brad Owen", "Dina Brown", "Jackson Harrys", "Stephen Smith", "Frank Jones", "Kate Mason", "Vanessa Kyle", "Stella Murphy", "Evans O'Ryan", "Davis Miller", "Jaidan Lam", "Olivia Wilson", "Thomas Connor", "Charlotte Lee", "Arren Kae", "Akiha Tohno", "George Star", "Ash Fate"]
-                        for i in Lista_N:
-                                rand_scores = int(random.uniform(10, 80))
-                                lista_valores_random.append(rand_scores)
-                        return ordenar_burbuja(lista_valores_random)
-
-
-                 #Una vez guardados en la lista los puntos aleatorios se llama a la función encargada de ordenar la lista
-                def ordenar_burbuja(lista_valores_random):
-                        return ordenar_burbuja_aux(lista_valores_random, 0, 0, False)
-                
-                #Se utiliza el algoritmo de ordenamiento burbuja que se encarga de ordenar la lista de forma ascendente
-                def ordenar_burbuja_aux(lista_valores_random, y, x, cambio):
-                            if y == len(lista_valores_random) -x - 1:
-                                        if cambio:
-                                            return ordenar_burbuja_aux(lista_valores_random,0, x+1, False)
-                                        else:
-                                                os.remove("Puntuaciones_pilotos.txt")
-                                                archivo = open("Puntuaciones_pilotos.txt", "a+")
-                                                return asignar_valor_piloto(lista_valores_random[::-1], Lista_pilotos_dos, 0, archivo)    #Como la lista se ordena de menor a mayor, se le da vuelta a la misma ya que
-                            if lista_valores_random[y] > lista_valores_random[y+1]:                                                                          #La tabla inicia con las puntuaciones más altas primero
-                                        Tem = lista_valores_random[y]
-                                        lista_valores_random[y] = lista_valores_random[y+1]
-                                        lista_valores_random[y+1] = Tem
-                                        return ordenar_burbuja_aux(lista_valores_random,y+1, i, True)
-                            else:
-                                        return ordenar_burbuja_aux(lista_valores_random, y+1, i, cambio)
-                
-
-                #Una vez ordenada la lista de puntuaciones se le debe asignar cada puntuacion a un piloto al azar también, para estos se utiliza también la biblioteca random
-                #La cual selecciona cada uno de los personajes y despues los elimina de la lista para que no sea elegidos dos veces.
-                #Cada piloto con se respectiva puntuacion son escritos en un documento de texto el cual será leido posteriormente para crear la table de puntuaciones
-                #Y a su vez se crea la etiqueta en la pantalla con la informacion excrita el documento de texto antes mencionado
-                                
-                def asignar_valor_piloto(lista_valores_random, Lista_pilotos_dos, p, archivo):
-                        if p == len(lista_valores_random):
-                                archivo.seek(0)
-                                contenido = archivo.read()
-                                Lista_pilotos_dos = Lista_N
-                                tabla = Label(Fondo_Pantalla_Puntuaciones, text = contenido, font=("Times", 20), bg ="light grey", width=23, fg = "black", justify = LEFT, anchor=W)
-                                tabla.place(x=170, y=50)
-                        else:
-                                piloto_random = random.choice(Lista_pilotos_dos)
-                                archivo.write(" " + str(piloto_random) + "-----------> "+ str(int(lista_valores_random[p]))+ '\n')
-                                Lista_pilotos_dos.remove(piloto_random)
-                                return asignar_valor_piloto(lista_valores_random, Lista_pilotos_dos, p+1, archivo)
-
-                        
-                #Se llama a la funcion para iniciar el proceso
-                valores_random([])
-
-        punt_aleatorias()
-
-        #_____________________________________________Botón Para Volver a la Pantalla Principal_______________________________________
-
-        
-        def Volver3():
-                Pantalla_Puntuaciones.destroy()
+        def Volver():
+                Pantalla_MejoresPts.destroy()
                 Pantalla_Principal.deiconify()
      
-        Back_Imagen3 = Imagenes("Volver_Boton.gif")
-        Back_Principal3 = Button(Pantalla_Puntuaciones, image = Back_Imagen3, command = Volver3)
-        Back_Principal3.place(x = 620, y = 650)
-  
+        Back_Imagen4 = Imagenes("Volver_Boton.gif")
+        Back_Principal4 = Button(Pantalla_MejoresPts, image = Back_Imagen4, command = Volver)
+        Back_Principal4.place(x = 620, y = 650)
 
-        Pantalla_Puntuaciones.mainloop()
+        Pantalla_MejoresPts.mainloop()
 
 
 #______________________Pantalla Elegir Personaje_______________________
@@ -204,10 +199,106 @@ def P_Personajes():
         Fondo_Pantalla_Personajes2 = Label(Fondo_Pantalla_Personajes, image = Img_Fondo_Pers,  width= 1300, height= 700)
         Fondo_Pantalla_Personajes2.place(x=0, y=0)
 
+        def Puntuaciones2():
+                Pantalla_Personajes.withdraw()
+                Pantalla_Puntuaciones = Toplevel()
+                Pantalla_Puntuaciones.title("Mejores Puntuaciones")
+                Pantalla_Puntuaciones.resizable(width=NO,height=NO)
+                Pantalla_Puntuaciones.minsize(700, 700)
+
+                Fondo_Pantalla_Puntuaciones = Canvas(Pantalla_Puntuaciones, width= 700, height= 700)
+                Fondo_Pantalla_Puntuaciones.place(x= 0, y = 0)
+        
+                Img_Fondo_Punt= Imagenes("Fondo_Punt.gif")
+                Fondo_Pantalla_Puntuaciones = Label(Fondo_Pantalla_Puntuaciones, image = Img_Fondo_Punt,  width= 700, height= 700)
+                Fondo_Pantalla_Puntuaciones.place(x=0, y=0)
+
+        
+        
+        
+                #_______________________________ Puntos Aleatorios de los Pilotos__________________________________
+
+                Lista_pilotos_dos = Lista_N[:]
+
+                #Se inicia seleccionando puntajes aleatorios con el uso del random, y almacenando estos en una lista
+                def punt_aleatorias():
+                        global x, y
+                        x = 0
+                        y = 0
+                        def valores_random(lista_valores_random):
+                                lista_valores_random = []
+                                Lista_N = ["Brad Owen", "Dina Brown", "Jackson Harrys", "Stephen Smith", "Frank Jones", "Kate Mason", "Vanessa Kyle", "Stella Murphy", "Evans O'Ryan", "Davis Miller", "Jaidan Lam", "Olivia Wilson", "Thomas Connor", "Charlotte Lee", "Arren Kae", "Akiha Tohno", "George Star", "Ash Fate"]
+                                for i in Lista_N:
+                                        rand_scores = int(random.uniform(10, 80))
+                                        lista_valores_random.append(rand_scores)
+                                return ordenar_burbuja(lista_valores_random)
+
+
+                        #Una vez guardados en la lista los puntos aleatorios se llama a la función encargada de ordenar la lista
+                        def ordenar_burbuja(lista_valores_random):
+                                return ordenar_burbuja_aux(lista_valores_random, 0, 0, False)
+                
+                        #Se utiliza el algoritmo de ordenamiento burbuja que se encarga de ordenar la lista de forma ascendente
+                        def ordenar_burbuja_aux(lista_valores_random, y, x, cambio):
+                                if y == len(lista_valores_random) -x - 1:
+                                        if cambio:
+                                                return ordenar_burbuja_aux(lista_valores_random,0, x+1, False)
+                                        else:
+                                                os.remove("Puntuaciones_pilotos.txt")
+                                                archivo = open("Puntuaciones_pilotos.txt", "a+")
+                                                return asignar_valor_piloto(lista_valores_random[::-1], Lista_pilotos_dos, 0, archivo)    #Como la lista se ordena de menor a mayor, se le da vuelta a la misma ya que
+                                if lista_valores_random[y] > lista_valores_random[y+1]:                                                                          #La tabla inicia con las puntuaciones más altas primero
+                                        Tem = lista_valores_random[y]
+                                        lista_valores_random[y] = lista_valores_random[y+1]
+                                        lista_valores_random[y+1] = Tem
+                                        return ordenar_burbuja_aux(lista_valores_random,y+1, 0, True)
+                                else:
+                                        return ordenar_burbuja_aux(lista_valores_random, y+1, 0, cambio)
+                
+
+                        #Una vez ordenada la lista de puntuaciones se le debe asignar cada puntuacion a un piloto al azar también, para estos se utiliza también la biblioteca random
+                        #La cual selecciona cada uno de los personajes y despues los elimina de la lista para que no sea elegidos dos veces.
+                        #Cada piloto con se respectiva puntuacion son escritos en un documento de texto el cual será leido posteriormente para crear la table de puntuaciones
+                        #Y a su vez se crea la etiqueta en la pantalla con la informacion excrita el documento de texto antes mencionado
+                                
+                        def asignar_valor_piloto(lista_valores_random, Lista_pilotos_dos, p, archivo):
+                                if p == len(lista_valores_random):
+                                        archivo.seek(0)
+                                        contenido = archivo.read()
+                                        Lista_pilotos_dos = Lista_N
+                                        tabla = Label(Fondo_Pantalla_Puntuaciones, text = contenido, font=("Times", 20), bg ="light grey", width=23, fg = "black", justify = LEFT, anchor=W)
+                                        tabla.place(x=170, y=50)
+                                else:
+                                        piloto_random = random.choice(Lista_pilotos_dos)
+                                        archivo.write(" " + str(piloto_random) + "-----------> "+ str(int(lista_valores_random[p]))+ '\n')
+                                        Lista_pilotos_dos.remove(piloto_random)
+                                        return asignar_valor_piloto(lista_valores_random, Lista_pilotos_dos, p+1, archivo)
+
+                        
+                        #Se llama a la funcion para iniciar el proceso
+                        valores_random([])
+
+                punt_aleatorias()
+
+                #_____________________________________________Botón Para Volver a la Pantalla Principal_______________________________________
+
+        
+                def Volver3():
+                        Pantalla_Puntuaciones.destroy()
+                        Pantalla_Personajes.deiconify()
+     
+                Back_Imagen3 = Imagenes("Volver_Boton.gif")
+                Back_Principal3 = Button(Pantalla_Puntuaciones, image = Back_Imagen3, command = Volver3)
+                Back_Principal3.place(x = 620, y = 650)
+  
+
+                Pantalla_Puntuaciones.mainloop()
+
+
         def Volver2():
                 global i, j
                 i = 0
-                Pantalla_Personajes.withdraw()
+                Pantalla_Personajes.destroy()
                 Pantalla_Principal.deiconify()
                 
                 Icono_Act = PhotoImage(file = Lista_P[j])
@@ -217,6 +308,10 @@ def P_Personajes():
 
                 
                 Pantalla_Principal.mainloop()
+
+        Imag_Boton_Punt2 = Imagenes("Puntuaciones.gif")
+        Boton_Punt2 = Button(Fondo_Pantalla_Personajes, image = Imag_Boton_Punt, command = Puntuaciones2)
+        Boton_Punt2.place(x=10, y = 650)
      
         Back_Imagen2 = Imagenes("Volver_Boton.gif")
         Back_Principal2 = Button(Pantalla_Personajes, image = Back_Imagen2, command = Volver2)
@@ -408,7 +503,7 @@ def settings():
         Cambiar_Nombre.place(x=100, y = 225)
 
         def Volver4():
-                Pantalla_Settings.withdraw()
+                Pantalla_Settings.destroy()
                 Pantalla_Principal.deiconify()
      
         Back_Imagen4 = Imagenes("Volver_Boton.gif")
@@ -447,11 +542,398 @@ def seleccion_modo_juego():
                 Boton_M2 = Label(Pantalla_Seleccion, image = Fondo_Boton_M2)
                 Boton_M2.place(x=380, y=180)
 
+                #------------
+                # Constantes
+                #------------
 
-                Modo_De_Juego1 = Button(Pantalla_Seleccion, text = "Destrucción de Asteroides", anchor=CENTER, font=("Times", 12), bg ="Black", fg = "white")
+                pantalla_ancho = 1000
+                pantalla_alto = 700
+
+                #-----------------------
+                # Fundiones adicionales
+                #-----------------------
+
+                def buscar_pos(Lista,Num):
+                        return buscar_pos_aux(Lista,Num,0,len(Lista))
+
+                def buscar_pos_aux(Lista,Num,i,n):
+                        if i == n:
+                                return 'no se encontró el puntaje'
+                        else:
+                                if Lista[i] == Num:
+                                        return i
+                                else:
+                                        return buscar_pos_aux(Lista,Num,i+1,n)
+                                
+
+                def cargar_img(nombre, alpha=False):
+                        ruta = os.path.join('Img',nombre)
+                        image = pygame.image.load(ruta)
+                        # Comprobar si la imagen tiene "canal alpha"
+                        if alpha is True:
+                                image = image.convert_alpha()
+                        else:
+                                image = image.convert()
+                        return image
+
+                def actualizar_pts():
+                        global Lista_BestScores
+                        global pts
+                        global j
+
+                        Lista_BestScores.append(pts)
+                        Lista_BestScores = ord_burbuja(Lista_BestScores)
+                        if len(Lista_BestScores) > 5:
+                                Lista_BestScores = Lista_BestScores[1:]
+                        pos = buscar_pos(Lista_BestScores,pts)
+                        pts = 0
+
+                        reescribir_puntajes(20,4)
+                        if isinstance(pos,int):
+                                reescribir_nombres(Lista_N[j],4-pos,False)
+
+                def reescribir_puntajes(B,I):
+                        global Lista_BestScores
+                        archivo = open("Puntajes Usuarios.txt",'r+')
+                        if I < 0:
+                                archivo.close()
+                        else:
+                                archivo.seek(B)
+                                archivo.write(str(Lista_BestScores[I]))
+                                archivo.close()
+                                return reescribir_puntajes(B+25,I-1)
+
+                def reescribir_nombres(nombre,pos,mover):
+                        archivo = open("Puntajes Usuarios.txt",'r+')
+                        if not mover:
+                                corte = buscar_pos(nombre,' ')
+                                nombre = nombre[:corte]
+                                archivo.seek(25*pos)
+                                nombre2 = archivo.readline()[:11]
+                                archivo.seek(25*pos)
+                                archivo.write('          ')
+                                archivo.seek(25*pos)
+                                archivo.write(nombre)
+                                archivo.close
+                                if nombre != '          ':
+                                        return reescribir_nombres(nombre2,pos+1,True)
+                        else:
+                                if pos < 5:
+                                        archivo.seek(25*pos)
+                                        nombre2 = archivo.readline()[:11]
+                                        archivo.seek(25*pos)
+                                        archivo.write('          ')
+                                        archivo.seek(25*pos)
+                                        archivo.write(nombre)
+                                        archivo.close
+                                        return reescribir_nombres(nombre2,pos+1,True)
+                        
+        
+                
+                #-------
+                # Juego
+                #-------
+
+                def jugar():
+                        global terminado
+                        Pantalla_Seleccion.withdraw()
+
+                        pantalla = pygame.display.set_mode((pantalla_ancho,pantalla_alto))
+                        pygame.display.set_caption('Star Force 2018')
+                        pygame.display.init()
+
+                        #--------
+                        # Clases
+                        #--------
+
+                        class Nave(pygame.sprite.Sprite):
+
+                                def __init__(self):
+                                        pygame.sprite.Sprite.__init__(self)
+                                        self.image = cargar_img('Jugador.png', alpha=True)
+                                        self.rect = self.image.get_rect()
+                                        self.rect.centerx = pantalla_ancho/2
+                                        self.rect.centery = pantalla_alto/2
+
+                                def bordes(self):
+                                        if self.rect.top <= 0:
+                                                self.rect.top = 0
+                                        if self.rect.left <= 0:
+                                                self.rect.left = 0
+                                        if self.rect.bottom >= pantalla_alto:
+                                                self.rect.bottom = pantalla_alto
+                                        if self.rect.right >= pantalla_ancho:
+                                                self.rect.right = pantalla_ancho
+
+                        class Apuntador(pygame.sprite.Sprite):
+
+                                def __init__(self):
+                                        pygame.sprite.Sprite.__init__(self)
+                                        self.image = cargar_img('Mira.png', alpha=True)
+                                        self.rect = self.image.get_rect()
+                                        self.rect.centerx = pantalla_ancho/2
+                                        self.rect.centery = (pantalla_alto/2)-254
+
+                                def bordes(self):
+                                        if self.rect.top <= -250:
+                                                self.rect.top = -250
+                                        if self.rect.left <= 80:
+                                                self.rect.left = 80
+                                        if self.rect.bottom >= pantalla_alto-250:
+                                                self.rect.bottom = pantalla_alto-250
+                                        if self.rect.right >= pantalla_ancho-80:
+                                                self.rect.right = pantalla_ancho-80
+
+                        class Asteroide(pygame.sprite.Sprite):
+
+                                def __init__(self):
+                                        pygame.sprite.Sprite.__init__(self)
+                                        self.image = cargar_img('Asteroide.png', alpha=True)
+                                        self.rect = self.image.get_rect()
+                                        self.rect.centerx = random.randint(0,884)
+                                        self.rect.centery = -100
+
+                                def avance(self):
+                                        if self.rect.centery < 0:
+                                                self.rect.centery = random.randint(50,950)
+                                        else:
+                                                if self.rect.size != (100,100):
+                                                        x = self.rect.size[0]+1
+                                                        y = self.rect.size[1]+1
+                                                        self.rect.size = (x,y)
+                                                        self.image = cargar_img(f'Asteroide {self.rect.size[0]}.png', alpha=True)
+                                                else:
+                                                        time.sleep(1)
+                                                        self.__init__()
+
+                                def colisiones(self,objeto):
+                                        global textofinal
+                                        global terminado
+                                        if self.rect.size == (100,100):
+                                                if self.rect.colliderect(objeto.rect):
+                                                        textofinal = 'Has perdido'
+                                                        terminado = True
+                
+                                def desctruccion(self,objeto):
+                                        global restantes
+                                        global pts
+                                        global disparo
+                                        if disparo:
+                                                if self.rect.colliderect(objeto.rect):
+                                                        restantes -= 1
+                                                        pts += random.randint(1,10)
+                                                        self.__init__()
+
+                        class Anillo(pygame.sprite.Sprite):
+
+                                def __init__(self):
+                                        pygame.sprite.Sprite.__init__(self)
+                                        self.image = cargar_img('Anillo.png', alpha=True)
+                                        self.rect = self.image.get_rect()
+                                        self.rect.centerx = random.randint(0,700)
+                                        self.rect.centery = -100
+
+                                def avance(self):
+                                        if self.rect.centery < 0:
+                                                self.rect.centery = random.randint(50,950)
+                                        else:
+                                                if self.rect.size != (100,100):
+                                                        x = self.rect.size[0]+2
+                                                        y = self.rect.size[1]+2
+                                                        self.rect.size = (x,y)
+                                                        self.image = cargar_img(f'Anillo {self.rect.size[0]}.png', alpha=True)
+                                                else:
+                                                        time.sleep(1)
+                                                        self.__init__()
+
+                                def colisiones(self,objeto):
+                                        global restantes
+                                        global pts
+                                        if self.rect.size == (100,100):
+                                                if self.rect.colliderect(objeto.rect):
+                                                        restantes -= 1
+                                                        pts += random.randint(1,10)
+                                                        self.__init__()
+
+                        class Combustible(pygame.sprite.Sprite):
+
+                                def __init__(self):
+                                        pygame.sprite.Sprite.__init__(self)
+                                        self.image = cargar_img('Combustible.png', alpha=True)
+                                        self.rect = self.image.get_rect()
+                                        self.rect.centerx = random.randint(50,950)
+                                        self.rect.centery = -100
+
+                                def avance(self):
+                                        if self.rect.centery < 0:
+                                                self.rect.centery = random.randint(150,550)
+                                        else:
+                                                if self.rect.size[0] != 50:
+                                                        x = self.rect.size[0]+2
+                                                        y = self.rect.size[1]+2
+                                                        self.rect.size = (x,y)
+                                                        self.image = cargar_img(f'Combustible {self.rect.size[0]}.png', alpha=True)
+                                                else:
+                                                        self.__init__()
+    
+                                def colisiones(self,objeto):
+                                        global energía
+                                        if self.rect.size[0] == 50:
+                                                if self.rect.colliderect(objeto.rect):
+                                                        energía += 200
+                                                        self.__init__()                
+
+                        class Laser(pygame.sprite.Sprite):
+    
+                                def __init__(self,x,y):
+                                        pygame.sprite.Sprite.__init__(self)
+                                        self.image = cargar_img('Laser.png', alpha=True)
+                                        self.rect = self.image.get_rect()
+                                        self.rect.centerx = x
+                                        self.rect.centery = y
+
+                                def bordes(self):
+                                        if self.rect.top <= 20:
+                                                self.rect.top = 20
+                                        if self.rect.left <= 80:
+                                                self.rect.left = 80
+                                        if self.rect.bottom >= pantalla_alto-20:
+                                                self.rect.bottom = pantalla_alto-20
+                                        if self.rect.right >= pantalla_ancho-80:
+                                                self.rect.right = pantalla_ancho-80        
+
+                                def disparo(self,objetivo1,objetivo2,x,y):
+                                        global disparo
+                                        if disparo:
+                                                if not self.rect.colliderect(objetivo1.rect) and not self.rect.colliderect(objetivo2.rect):
+                                                        self.rect.top -= 30
+                                                else:
+                                                        self.__init__(x,y)
+                                                        disparo = False
+    
+                        fondo = pygame.image.load('Img\Fondo_Juego.png')
+                        jugador = Nave()
+                        apuntador = Apuntador()
+                        laser = Laser(jugador.rect.centerx,jugador.rect.centery)
+                        combustible = Combustible()
+                        asteroide = Asteroide()
+                        anillo = Anillo()
+
+                        pygame.key.set_repeat(1, 20)
+                        pygame.mouse.set_visible(False)
+
+                        clock = pygame.time.Clock()
+
+                        exe = True
+    
+                        while exe:
+                                global modo
+                                global restantes
+                                global energía
+                                global disparo
+                                global textofinal
+                                clock.tick(30)
+                                fuente = pygame.font.Font(None, 20)
+                                fuente2 = pygame.font.Font(None, 100)
+        
+                                jugador.bordes()
+                                apuntador.bordes()
+                                laser.bordes()
+                                laser.disparo(apuntador,asteroide,jugador.rect.centerx,jugador.rect.centery)
+
+                                if terminado:
+                                        time.sleep(2)
+                                        pygame.display.quit()
+                                        actualizar_pts()
+                                        Pantalla_Seleccion.deiconify()
+                                        exe = False
+
+                                if modo == 1:
+                                        asteroide.avance()
+                                        asteroide.colisiones(jugador)
+                                        asteroide.desctruccion(laser)
+                                elif modo == 2:
+                                        anillo.avance()
+                                        anillo.colisiones(jugador)
+                                if energía <= 700:
+                                        aparecer = random.randint(1,5)
+                                        if aparecer == 1:
+                                                combustible.avance()
+                                                combustible.colisiones(jugador)
+                                if energía <= 0:
+                                        textofinal = 'Has perdido'
+                                        terminado = True
+                                if restantes == 0:
+                                        textofinal = 'Has ganado'
+                                        terminado = True
+            
+                                for event in pygame.event.get():
+                                        if event.type == pygame.QUIT:
+                                                exe = False
+                                                pygame.quit()
+                                                Pantalla_Seleccion.deiconify()
+                                        if not disparo:
+                                                if event.type == pygame.KEYDOWN:
+                                                        if event.key == K_UP:
+                                                                jugador.rect.centery -= 10
+                                                                apuntador.rect.centery -= 10
+                                                                laser.rect.centery -= 10
+                                                        elif event.key == K_DOWN:
+                                                                jugador.rect.centery += 10
+                                                                apuntador.rect.centery += 10
+                                                                laser.rect.centery += 10
+                                                        elif event.key == K_LEFT:
+                                                                jugador.rect.centerx -= 10
+                                                                apuntador.rect.centerx -= 10
+                                                                laser.rect.centerx -= 10
+                                                        elif event.key == K_RIGHT:
+                                                                jugador.rect.centerx += 10
+                                                                apuntador.rect.centerx += 10
+                                                                laser.rect.centerx += 10
+                                                        elif event.key == K_SPACE:
+                                                                disparo = True
+                                                        elif event.key == K_ESCAPE:
+                                                                sys.exit(0)
+         
+                                texto_puntos = fuente.render(f'Puntos = {pts}',1,(255,255,255))
+                                texto_restantes = fuente.render(f'Restantes = {restantes}',1,(255,255,255))
+                                texto_energía = fuente.render(f'Combustible = {energía}',1,(255,255,255))
+                                texto_final = fuente2.render(f'{textofinal}',1,(255,255,255))
+                                pantalla.blit(fondo,(0,0))
+                                pantalla.blit(texto_puntos,(1,1))
+                                pantalla.blit(texto_restantes,(1,12))
+                                pantalla.blit(texto_energía,(1,23))
+                                pantalla.blit(asteroide.image, asteroide.rect)
+                                pantalla.blit(anillo.image, anillo.rect)
+                                pantalla.blit(combustible.image, combustible.rect)
+                                pantalla.blit(apuntador.image, apuntador.rect)
+                                pantalla.blit(laser.image, laser.rect)
+                                pantalla.blit(jugador.image, jugador.rect)
+                                pantalla.blit(texto_final,(300,300))
+                                energía -= 1
+                                pygame.display.flip()
+
+
+                def modo1():
+                        global modo
+                        global restantes
+                        modo = 1
+                        restantes = 9
+                        pygame.init()
+                        jugar()
+
+                def modo2():
+                        global modo
+                        global restantes
+                        modo = 2
+                        restantes = 9
+                        pygame.init()
+                        jugar()
+                        
+                Modo_De_Juego1 = Button(Pantalla_Seleccion, text = "Destrucción de Asteroides", anchor=CENTER, font=("Times", 12), bg ="Black", fg = "white", command=modo1)
                 Modo_De_Juego1.place(x = 150, y = 350)
                 
-                Modo_De_Juego2 = Button(Pantalla_Seleccion, text = "Maniobras", anchor=CENTER, font=("Times", 12), bg ="Black", width=11, fg = "white")
+                Modo_De_Juego2 = Button(Pantalla_Seleccion, text = "Maniobras", anchor=CENTER, font=("Times", 12), bg ="Black", width=11, fg = "white", command=modo2)
                 Modo_De_Juego2.place(x = 400, y = 350)
 
 
