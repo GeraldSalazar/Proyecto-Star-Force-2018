@@ -38,6 +38,8 @@ def Imagenes(name):
         ruta=os.path.join('Images',name)
         imagen=PhotoImage(file=ruta) 
         return imagen
+#_________________________Función Puntuaciones _______________________________
+
 
 def ord_burbuja(Lista):
         return ord_burbuja_aux(Lista,0,0,False)
@@ -81,74 +83,74 @@ def check_puntajes(B):
                 archivo.close()
                 return check_puntajes(B+25)
 
-control = serial.Serial('COM5',38400,timeout=0)
+
+#________________________________________________________________________
+
+        
+control = serial.Serial('COM3',38400,timeout=0)
 time.sleep(2)
 
 def act_control():
-        global escribir
+        global x, y
+        t = 0
+        inicio_lectura = False
         while True:
-                if escribir:
-                        global leds, restantes
-                        control.write('leds={leds},display={restantes};'.encode())
-                        time.sleep(0.1)
-                        escribir = False
-                        
-ac = Thread(target = act_control, args=())
-ac.start()
-
-def leer_mov():
-        global escribir
-        t=0
-        while True:
-                if not escribir:
-                        global x, y
                         linea = control.readline()
-                        if linea == b'':
-                                escribir = True
-                        else:
-                                trunc_y = 36
-                                if t > 2:
+                        time.sleep(0.2)
+                        print (linea)
+                        if energía == 833:
+                                leds=111111
+                                Cambiar_Luces = True
+                        if energía == 666:
+                                leds=111110
+                                Cambiar_Luces = True
+                        if energía == 500:
+                                leds=111100
+                                Cambiar_Luces = True
+                        if energía == 333:
+                                leds=111000
+                                Cambiar_Luces = True
+                        if energía == 166:
+                                leds=110000
+                                Cambiar_Luces = True
+                        if energía == 0:
+                                leds=100000
+                                Cambiar_Luces = True
+                        if Cambiar_Luces:
+                                control.write('leds={leds},display={restantes};'.encode())
+                                time.sleep(0.1)
+                                Cambiar_Luces = False  
+
+                       #______
+                        if inicio_lectura:
+                                        trunc_y = 36
                                         x = linea[26:29]
                                         if x == b'-0.':
                                                 trunc_y += 1
                                         x = int(float(x))
+                                        print (x)
                                         if x < 0:
                                                 trunc_y += 1
                                                 if x < -9:
                                                         trunc_y += 1
                                         elif x > 9:
                                                 trunc_y += 1
-                                        y = linea[trunc_y:trunc_y+3]
-                                        y = int(float(y))
-                                        #print((x,y))
-                                        escribir = True
-                                        print(t)
-                        t+=1
+                                                y = linea[trunc_y:trunc_y+3]
+                                                if y[-1] == b';':
+                                                        y = y[:-1]
+                                                y = int(float(y))
+                                                print(y)      
+                        else:
+                                t += 1
+                                if t == 7:
+                                        inicio_lectura = True
+                                                
 
-lm = Thread(target=leer_mov, args=())
-lm.start()
+ac = Thread(target = act_control, args=())
+ac.start()
 
-def act_leds():
-        global energía, restantes, leds
-        while True:
-                if energía > 833:
-                        leds=111111
-                elif energía > 666:
-                        leds=111110
-                elif energía > 500:
-                        leds=111100
-                elif energía > 333:
-                        leds=111000
-                elif energía > 166:
-                        leds=110000
-                elif energía > 0:
-                        leds=100000
-                else:
-                        leds=000000
-                time.sleep(1)
 
-al = Thread(target=act_leds, args=())
-al.start()
+#__________________
 
 check_puntajes(20)
 
@@ -698,7 +700,10 @@ def seleccion_modo_juego():
 
                 
                                 
-        
+
+   #__________________________________________________________________________________________________________________________________
+
+                                
                 #-------
                 # Juego
                 #-------
@@ -779,17 +784,14 @@ def seleccion_modo_juego():
                                                                 self.__init__()
 
                                         def colisiones(self,objeto):
-                                                global textofinal
-                                                global terminado
+                                                global textofinal, terminado
                                                 if self.rect.size == (100,100):
                                                         if self.rect.colliderect(objeto.rect):
                                                                 textofinal = 'Has perdido'
                                                                 terminado = True
                                 
                                         def desctruccion(self,objeto):
-                                                global restantes
-                                                global pts
-                                                global disparo
+                                                global disparo, pts, restantes
                                                 if disparo:
                                                         if self.rect.colliderect(objeto.rect):
                                                                 restantes -= 1
@@ -897,7 +899,7 @@ def seleccion_modo_juego():
                         pygame.mouse.set_visible(False)
 
                         clock = pygame.time.Clock()
-    
+
                         while True:
                                 global modo, restantes, energía, disparo, textofinal,pts, x, y
                                 
@@ -927,6 +929,8 @@ def seleccion_modo_juego():
                                 if energía <= 0:
                                         textofinal = 'Has perdido'
                                         terminado = True
+                                        control.write('leds={leds},display={restantes};'.encode())
+                                        time.sleep(0.1)
                                         
                                 if restantes == 0:
                                         textofinal = 'Has ganado'
@@ -945,15 +949,15 @@ def seleccion_modo_juego():
                                                         jugador.rect.centery -= 10
                                                         apuntador.rect.centery -= 10
                                                         laser.rect.centery -= 10
-                                                elif y > 10:
+                                                if y > 10:
                                                         jugador.rect.centery += 10
                                                         apuntador.rect.centery += 10
                                                         laser.rect.centery += 10
-                                                elif x > 10:
+                                                if x > 10:
                                                         jugador.rect.centerx -= 10
                                                         apuntador.rect.centerx -= 10
                                                         laser.rect.centerx -= 10
-                                                elif x < -10:
+                                                if x < -10:
                                                         jugador.rect.centerx += 10
                                                         apuntador.rect.centerx += 10
                                                         laser.rect.centerx += 10
@@ -966,7 +970,7 @@ def seleccion_modo_juego():
                                                                 restantes = 0
                                                                 energía = 0
                                                                 Pantalla_Seleccion.deiconify()
-                                control.write(f'leds={leds},display={restantes};'.encode())
+                                
                                 texto_puntos = fuente.render(f'Puntos = {pts}',1,(255,255,255))
                                 texto_restantes = fuente.render(f'Restantes = {restantes}',1,(255,255,255))
                                 texto_energía = fuente.render(f'Combustible = {energía}',1,(255,255,255))
@@ -1037,7 +1041,7 @@ def seleccion_modo_juego():
         else:
                 messagebox.showinfo("Un paso antes...", "Debes escoger un piloto")
                 
-
+                
 #____________________________Botones_____________________________
 
 #Abrir La Ventana About
